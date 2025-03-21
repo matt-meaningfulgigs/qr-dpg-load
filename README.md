@@ -1,6 +1,6 @@
 # QR-DPG Load Test
 
-## Installation (macOS)
+## Installation
 
 ```bash
 brew install k6

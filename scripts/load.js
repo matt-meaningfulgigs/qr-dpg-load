@@ -1,27 +1,9 @@
 import http from 'k6/http';
 import { check } from 'k6';
 import { Trend, Rate } from 'k6/metrics';
+import { options, redirectUrls } from './config.js';
 
-export let options = {
-    // Scale up to 50,000 VUs gradually
-    stages: [
-        { duration: '30s', target: 1000 },
-        { duration: '30s', target: 5000 },
-        { duration: '1m', target: 10000 },
-        { duration: '2m', target: 25000 },
-        { duration: '2m', target: 50000 },
-        { duration: '1m', target: 0 },
-    ],
-
-    // Uncomment below and comment the above junk for constant 12,500 users for 20 minutes
-    // vus: 12500,
-    // duration: '20m',
-
-    thresholds: {
-        http_req_failed: ['rate<0.05'],
-        http_req_duration: ['p(95)<1000'],
-    },
-};
+export { options };
 
 let responseTimes = new Trend('response_times');
 let errorRate = new Rate('error_rate');
@@ -30,8 +12,10 @@ let alertedSlowResponse = false;
 let alertedFailureRate = false;
 
 export default function () {
-    const res = http.get('https://dashboard.qr-dpg.nl', {
-        tags: { name: 'MainPage' },
+    const url = redirectUrls[Math.floor(Math.random() * redirectUrls.length)];
+
+    const res = http.get(url, {
+        tags: { name: 'RedirectTest' },
         timeout: '60s',
     });
 
@@ -40,13 +24,13 @@ export default function () {
 
     // Log once on first bad response time. This may spam so delete if it does
     if (!alertedSlowResponse && res.timings.duration > 1500) {
-        console.warn(`[WARNING] Response time exceeded 1500ms for the first time: ${res.timings.duration}ms`);
+        console.warn(`[WARNING] Slow response (>1500ms): ${res.timings.duration}ms`);
         alertedSlowResponse = true;
     }
 
     // Log once on first server error. This may spam so delete if it does
     if (!alertedFailureRate && res.status >= 500) {
-        console.error(`[CRITICAL] Received first server error with status: ${res.status}`);
+        console.error(`[CRITICAL] Server error (status ${res.status}) on URL: ${url}`);
         alertedFailureRate = true;
     }
 
