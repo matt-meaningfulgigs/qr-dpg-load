@@ -1,7 +1,7 @@
 import http from 'k6/http';
 import { check } from 'k6';
 import { Trend, Rate } from 'k6/metrics';
-import { options, redirectUrls } from './config.js';
+import { options, urls } from './config.js';
 
 export { options };
 
@@ -12,7 +12,7 @@ let alertedSlowResponse = false;
 let alertedFailureRate = false;
 
 export default function () {
-    const url = redirectUrls[Math.floor(Math.random() * redirectUrls.length)];
+    const url = urls[Math.floor(Math.random() * urls.length)];
 
     const res = http.get(url, {
         tags: { name: 'RedirectTest' },

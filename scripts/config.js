@@ -19,6 +19,6 @@ export const options = {
     },
 };
 
-export const redirectUrls = [
+export const urls = [
     'https://dashboard.qr-dpg.nl'
 ];
